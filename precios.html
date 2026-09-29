@@ -16,7 +16,6 @@
     body {
       margin: 0;
       min-height: 100vh;
-
       font-family: Arial, Helvetica, sans-serif;
 
       background: #eeeeee;
@@ -28,11 +27,7 @@
       padding: 20px;
     }
 
-
-    /* TARJETA PRINCIPAL */
-
     .contenedor {
-
       width: 100%;
       max-width: 430px;
 
@@ -42,29 +37,22 @@
 
       border-radius: 22px;
 
-      box-shadow:
-        0 10px 30px rgba(0, 0, 0, 0.12);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
 
       text-align: center;
     }
 
-
-    /* TITULO */
-
     h1 {
-
       margin: 0;
 
-      font-size: 34px;
+      font-size: 32px;
 
       font-weight: 700;
 
       color: #111;
     }
 
-
     .descripcion {
-
       margin-top: 10px;
       margin-bottom: 25px;
 
@@ -73,11 +61,7 @@
       color: #777;
     }
 
-
-    /* CAMPO DE CODIGO */
-
     input {
-
       width: 100%;
 
       padding: 16px;
@@ -91,24 +75,13 @@
       border-radius: 12px;
 
       outline: none;
-
-      transition: 0.2s;
     }
-
 
     input:focus {
-
       border-color: #222;
-
-      box-shadow:
-        0 0 0 3px rgba(0, 0, 0, 0.08);
     }
 
-
-    /* BOTON */
-
     button {
-
       width: 100%;
 
       margin-top: 15px;
@@ -128,33 +101,17 @@
       font-weight: bold;
 
       cursor: pointer;
-
-      transition: 0.2s;
     }
-
-
-    button:hover {
-
-      background: #000;
-    }
-
 
     button:active {
-
       transform: scale(0.98);
     }
 
-
-    /* RESULTADO */
-
     #resultado {
-
       margin-top: 25px;
     }
 
-
     .producto {
-
       background: #f6f6f6;
 
       border-radius: 16px;
@@ -164,11 +121,7 @@
       border: 1px solid #eeeeee;
     }
 
-
-    /* ETIQUETAS */
-
     .etiqueta {
-
       font-size: 13px;
 
       font-weight: bold;
@@ -182,25 +135,17 @@
       margin-bottom: 7px;
     }
 
-
-    /* NOMBRE */
-
     .nombre {
-
       font-size: 27px;
 
       font-weight: bold;
 
       color: #111;
 
-      margin-bottom: 20px;
+      margin-bottom: 22px;
     }
 
-
-    /* PRECIO */
-
     .precio {
-
       font-size: 36px;
 
       font-weight: 800;
@@ -208,11 +153,7 @@
       color: #111;
     }
 
-
-    /* MENSAJE */
-
     .mensaje {
-
       padding: 15px;
 
       background: #fff3cd;
@@ -224,33 +165,34 @@
       font-size: 16px;
     }
 
+    .error {
+      padding: 15px;
 
-    /* MOVIL */
+      background: #f8d7da;
+
+      border-radius: 12px;
+
+      color: #842029;
+
+      font-size: 16px;
+    }
 
     @media (max-width: 480px) {
 
       .contenedor {
-
         padding: 25px;
-
       }
 
       h1 {
-
-        font-size: 30px;
-
+        font-size: 29px;
       }
 
       .nombre {
-
         font-size: 25px;
-
       }
 
       .precio {
-
         font-size: 34px;
-
       }
 
     }
@@ -262,17 +204,13 @@
 
 <body>
 
-
   <div class="contenedor">
 
-
     <h1>Consulta de precios</h1>
-
 
     <div class="descripcion">
       Ingresá el código del producto
     </div>
-
 
     <input
       id="codigo"
@@ -282,43 +220,29 @@
       autocomplete="off"
     >
 
-
     <button onclick="buscar()">
       BUSCAR
     </button>
 
-
     <div id="resultado"></div>
-
 
   </div>
 
 
-
 <script>
-
-
-/* CONEXIÓN CON GOOGLE SHEETS */
 
 const API =
 "https://script.google.com/macros/s/AKfycbyUh7fvXzP0EXYxyBQHUN3CA1flwlrI7tLZ6-CVddvtAtho9iMppSRyIbsaTBbww2iM/exec";
 
 
-
-/* BUSCAR PRODUCTO */
-
 function buscar() {
-
 
   const codigo =
     document.getElementById("codigo").value.trim();
 
-
   const resultado =
     document.getElementById("resultado");
 
-
-  /* SI NO INGRESÓ CÓDIGO */
 
   if (codigo === "") {
 
@@ -332,8 +256,6 @@ function buscar() {
   }
 
 
-  /* MENSAJE DE BÚSQUEDA */
-
   resultado.innerHTML = `
     <div>
       Buscando producto...
@@ -341,25 +263,25 @@ function buscar() {
   `;
 
 
-  /* CREAR CALLBACK */
-
   const callback =
     "respuesta_" + Date.now();
 
 
+  let terminado = false;
+
+
   window[callback] = function(datos) {
 
+    terminado = true;
 
-    /* PRODUCTO ENCONTRADO */
 
     if (datos.ok) {
 
-
       /*
-        Quitamos todos los $ que
-        puedan venir desde Google Sheets
-        y agregamos solamente uno.
-      */
+       * Eliminamos cualquier $ que
+       * venga desde Google Sheets.
+       * Después colocamos solamente uno.
+       */
 
       const precio =
         "$" + String(datos.precio).replace(/\$/g, "");
@@ -369,39 +291,27 @@ function buscar() {
 
         <div class="producto">
 
-
           <div class="etiqueta">
-            Producto
+            Nombre de producto
           </div>
-
 
           <div class="nombre">
             ${datos.nombre}
           </div>
 
-
           <div class="etiqueta">
             Precio
           </div>
-
 
           <div class="precio">
             ${precio}
           </div>
 
-
         </div>
 
       `;
 
-
-    }
-
-
-    /* PRODUCTO NO ENCONTRADO */
-
-    else {
-
+    } else {
 
       resultado.innerHTML = `
 
@@ -414,16 +324,14 @@ function buscar() {
     }
 
 
-    /* LIMPIAR CALLBACK */
-
     delete window[callback];
 
-    script.remove();
+    if (script) {
+      script.remove();
+    }
 
   };
 
-
-  /* CREAR PETICIÓN JSONP */
 
   const script =
     document.createElement("script");
@@ -437,28 +345,55 @@ function buscar() {
     callback;
 
 
+  /*
+   * Si después de 10 segundos
+   * no llega ninguna respuesta,
+   * mostramos un error.
+   */
+
+  const tiempoEspera = setTimeout(function() {
+
+    if (!terminado) {
+
+      resultado.innerHTML = `
+
+        <div class="error">
+          No se pudo obtener la información.
+          <br><br>
+          Intentá nuevamente.
+        </div>
+
+      `;
+
+      delete window[callback];
+
+      if (script) {
+        script.remove();
+      }
+
+    }
+
+  }, 10000);
+
+
   document.body.appendChild(script);
 
 }
 
 
-/* PERMITIR ENTER PARA BUSCAR */
+/* ENTER PARA BUSCAR */
 
 document
   .getElementById("codigo")
   .addEventListener("keydown", function(event) {
 
     if (event.key === "Enter") {
-
       buscar();
-
     }
 
   });
 
-
 </script>
-
 
 </body>
 
