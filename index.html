@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Consulta de precios</title>
+  <title>Lista de precios</title>
 
   <style>
     * {
@@ -15,25 +15,32 @@
       margin: 0;
       min-height: 100vh;
       font-family: Arial, sans-serif;
-      background: #f2f2f2;
+      background: #f1f1f1;
+
       display: flex;
       justify-content: center;
       align-items: center;
+
       padding: 20px;
     }
 
     .contenedor {
       width: 100%;
       max-width: 450px;
+
       background: white;
+
       padding: 30px 25px;
+
       border-radius: 18px;
-      box-shadow: 0 5px 25px rgba(0, 0, 0, 0.12);
+
+      box-shadow: 0 5px 25px rgba(0,0,0,0.12);
+
       text-align: center;
     }
 
     h1 {
-      margin-top: 0;
+      margin: 0 0 10px 0;
     }
 
     .descripcion {
@@ -43,24 +50,48 @@
 
     input {
       width: 100%;
+
       padding: 15px;
+
       font-size: 18px;
+
       border: 1px solid #ccc;
+
       border-radius: 10px;
+
       text-align: center;
+
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #222;
     }
 
     button {
       width: 100%;
+
       margin-top: 15px;
+
       padding: 15px;
+
       font-size: 18px;
+
       font-weight: bold;
+
       border: none;
+
       border-radius: 10px;
+
       background: #222;
+
       color: white;
+
       cursor: pointer;
+    }
+
+    button:active {
+      transform: scale(0.98);
     }
 
     #resultado {
@@ -69,29 +100,50 @@
 
     .producto {
       background: #f5f5f5;
-      border-radius: 12px;
+
       padding: 20px;
+
+      border-radius: 12px;
     }
 
     .nombre {
       font-size: 22px;
+
       font-weight: bold;
+
       margin-bottom: 12px;
     }
 
     .precio {
-      font-size: 28px;
+      font-size: 30px;
+
       font-weight: bold;
     }
 
     .mensaje {
       padding: 15px;
+
       border-radius: 10px;
+
       background: #fff3cd;
+
       color: #664d03;
+    }
+
+    .error {
+      background: #f8d7da;
+
+      color: #842029;
+    }
+
+    .cargando {
+      color: #666;
+
+      font-size: 16px;
     }
   </style>
 </head>
+
 
 <body>
 
@@ -103,6 +155,7 @@
       Ingresá el código del producto
     </div>
 
+
     <input
       type="text"
       id="codigo"
@@ -110,9 +163,11 @@
       autocomplete="off"
     >
 
-    <button onclick="buscarProducto()">
+
+    <button id="botonBuscar">
       BUSCAR
     </button>
+
 
     <div id="resultado"></div>
 
@@ -121,41 +176,99 @@
 
   <script>
 
+    // URL DE TU GOOGLE APPS SCRIPT
+
     const API_URL =
       "https://script.google.com/macros/s/AKfycbyUh7fvXzP0EXYxyBQHUN3CA1flwlrI7tLZ6-CVddvtAtho9iMppSRyIbsaTBbww2iM/exec";
 
 
-    function buscarProducto() {
+    // Elementos de la página
+
+    const campoCodigo =
+      document.getElementById("codigo");
+
+    const botonBuscar =
+      document.getElementById("botonBuscar");
+
+    const resultado =
+      document.getElementById("resultado");
+
+
+    // Cuando se toca BUSCAR
+
+    botonBuscar.addEventListener("click", buscarProducto);
+
+
+    // También permite buscar presionando ENTER
+
+    campoCodigo.addEventListener("keydown", function(event) {
+
+      if (event.key === "Enter") {
+
+        buscarProducto();
+
+      }
+
+    });
+
+
+    async function buscarProducto() {
 
       const codigo =
-        document.getElementById("codigo").value.trim();
-
-      const resultado =
-        document.getElementById("resultado");
+        campoCodigo.value.trim();
 
 
-      if (!codigo) {
+      // Si no escribió nada
 
-        resultado.innerHTML =
-          '<div class="mensaje">Ingresá un código.</div>';
+      if (codigo === "") {
+
+        resultado.innerHTML = `
+          <div class="mensaje">
+            Ingresá un código.
+          </div>
+        `;
 
         return;
       }
 
 
-      resultado.innerHTML =
-        '<div>Buscando producto...</div>';
+      // Mostrar que está buscando
+
+      resultado.innerHTML = `
+        <div class="cargando">
+          Buscando producto...
+        </div>
+      `;
 
 
-      const callback =
-        "respuesta_" + Date.now();
+      try {
+
+        // Crear dirección de consulta
+
+        const url =
+          API_URL +
+          "?codigo=" +
+          encodeURIComponent(codigo);
 
 
-      window[callback] = function(datos) {
+        // Consultar Apps Script
+
+        const respuesta =
+          await fetch(url);
+
+
+        // Convertir respuesta a JSON
+
+        const datos =
+          await respuesta.json();
+
+
+        // Producto encontrado
 
         if (datos.ok) {
 
           resultado.innerHTML = `
+
             <div class="producto">
 
               <div class="nombre">
@@ -167,46 +280,53 @@
               </div>
 
             </div>
+
           `;
 
-        } else {
+        }
 
-          resultado.innerHTML =
-            '<div class="mensaje">Producto no encontrado.</div>';
+
+        // Producto no encontrado
+
+        else {
+
+          resultado.innerHTML = `
+
+            <div class="mensaje">
+
+              Producto no encontrado.
+
+            </div>
+
+          `;
 
         }
 
 
-        delete window[callback];
+      } catch (error) {
 
-        const script =
-          document.getElementById(callback);
-
-        if (script) {
-          script.remove();
-        }
-
-      };
+        console.error(error);
 
 
-      const script =
-        document.createElement("script");
+        resultado.innerHTML = `
 
-      script.id = callback;
+          <div class="mensaje error">
 
-      script.src =
-        API_URL +
-        "?codigo=" +
-        encodeURIComponent(codigo) +
-        "&callback=" +
-        callback;
+            No se pudo conectar con el servidor.
 
+            <br><br>
 
-      script.onerror = function() {
+            Revisá tu conexión o intentá nuevamente.
 
-        resultado.innerHTML =
-          '<div class="mensaje">No se pudo conectar con el servidor.</div>';
+          </div>
 
-        delete window[callback];
+        `;
 
-       
+      }
+
+    }
+
+  </script>
+
+</body>
+</html>
