@@ -1,4 +1,465 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Consulta de precios</title>
+
+  <style>
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+
+      font-family: Arial, Helvetica, sans-serif;
+
+      background: #eeeeee;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      padding: 20px;
+    }
+
+
+    /* TARJETA PRINCIPAL */
+
+    .contenedor {
+
+      width: 100%;
+      max-width: 430px;
+
+      background: white;
+
+      padding: 30px;
+
+      border-radius: 22px;
+
+      box-shadow:
+        0 10px 30px rgba(0, 0, 0, 0.12);
+
+      text-align: center;
+    }
+
+
+    /* TITULO */
+
+    h1 {
+
+      margin: 0;
+
+      font-size: 34px;
+
+      font-weight: 700;
+
+      color: #111;
+    }
+
+
+    .descripcion {
+
+      margin-top: 10px;
+      margin-bottom: 25px;
+
+      font-size: 17px;
+
+      color: #777;
+    }
+
+
+    /* CAMPO DE CODIGO */
+
+    input {
+
+      width: 100%;
+
+      padding: 16px;
+
+      font-size: 21px;
+
+      text-align: center;
+
+      border: 2px solid #dddddd;
+
+      border-radius: 12px;
+
+      outline: none;
+
+      transition: 0.2s;
+    }
+
+
+    input:focus {
+
+      border-color: #222;
+
+      box-shadow:
+        0 0 0 3px rgba(0, 0, 0, 0.08);
+    }
+
+
+    /* BOTON */
+
+    button {
+
+      width: 100%;
+
+      margin-top: 15px;
+
+      padding: 16px;
+
+      border: none;
+
+      border-radius: 12px;
+
+      background: #222;
+
+      color: white;
+
+      font-size: 18px;
+
+      font-weight: bold;
+
+      cursor: pointer;
+
+      transition: 0.2s;
+    }
+
+
+    button:hover {
+
+      background: #000;
+    }
+
+
+    button:active {
+
+      transform: scale(0.98);
+    }
+
+
+    /* RESULTADO */
+
+    #resultado {
+
+      margin-top: 25px;
+    }
+
+
+    .producto {
+
+      background: #f6f6f6;
+
+      border-radius: 16px;
+
+      padding: 22px;
+
+      border: 1px solid #eeeeee;
+    }
+
+
+    /* ETIQUETAS */
+
+    .etiqueta {
+
+      font-size: 13px;
+
+      font-weight: bold;
+
+      letter-spacing: 1px;
+
+      color: #888;
+
+      text-transform: uppercase;
+
+      margin-bottom: 7px;
+    }
+
+
+    /* NOMBRE */
+
+    .nombre {
+
+      font-size: 27px;
+
+      font-weight: bold;
+
+      color: #111;
+
+      margin-bottom: 20px;
+    }
+
+
+    /* PRECIO */
+
+    .precio {
+
+      font-size: 36px;
+
+      font-weight: 800;
+
+      color: #111;
+    }
+
+
+    /* MENSAJE */
+
+    .mensaje {
+
+      padding: 15px;
+
+      background: #fff3cd;
+
+      border-radius: 12px;
+
+      color: #664d03;
+
+      font-size: 16px;
+    }
+
+
+    /* MOVIL */
+
+    @media (max-width: 480px) {
+
+      .contenedor {
+
+        padding: 25px;
+
+      }
+
+      h1 {
+
+        font-size: 30px;
+
+      }
+
+      .nombre {
+
+        font-size: 25px;
+
+      }
+
+      .precio {
+
+        font-size: 34px;
+
+      }
+
+    }
+
+  </style>
+
+</head>
+
+
+<body>
+
+
+  <div class="contenedor">
+
+
+    <h1>Consulta de precios</h1>
+
+
+    <div class="descripcion">
+      Ingresá el código del producto
+    </div>
+
+
+    <input
+      id="codigo"
+      type="text"
+      inputmode="numeric"
+      placeholder="Ejemplo: 1"
+      autocomplete="off"
+    >
+
+
+    <button onclick="buscar()">
+      BUSCAR
+    </button>
+
+
+    <div id="resultado"></div>
+
+
+  </div>
+
+
+
+<script>
+
+
+/* CONEXIÓN CON GOOGLE SHEETS */
+
+const API =
+"https://script.google.com/macros/s/AKfycbyUh7fvXzP0EXYxyBQHUN3CA1flwlrI7tLZ6-CVddvtAtho9iMppSRyIbsaTBbww2iM/exec";
+
+
+
+/* BUSCAR PRODUCTO */
+
+function buscar() {
+
+
+  const codigo =
+    document.getElementById("codigo").value.trim();
+
+
+  const resultado =
+    document.getElementById("resultado");
+
+
+  /* SI NO INGRESÓ CÓDIGO */
+
+  if (codigo === "") {
+
+    resultado.innerHTML = `
+      <div class="mensaje">
+        Ingresá un código de producto.
+      </div>
+    `;
+
+    return;
+  }
+
+
+  /* MENSAJE DE BÚSQUEDA */
+
+  resultado.innerHTML = `
+    <div>
+      Buscando producto...
+    </div>
+  `;
+
+
+  /* CREAR CALLBACK */
+
+  const callback =
+    "respuesta_" + Date.now();
+
+
+  window[callback] = function(datos) {
+
+
+    /* PRODUCTO ENCONTRADO */
+
+    if (datos.ok) {
+
+
+      /*
+        Quitamos todos los $ que
+        puedan venir desde Google Sheets
+        y agregamos solamente uno.
+      */
+
+      const precio =
+        "$" + String(datos.precio).replace(/\$/g, "");
+
+
+      resultado.innerHTML = `
+
+        <div class="producto">
+
+
+          <div class="etiqueta">
+            Producto
+          </div>
+
+
+          <div class="nombre">
+            ${datos.nombre}
+          </div>
+
+
+          <div class="etiqueta">
+            Precio
+          </div>
+
 
           <div class="precio">
-            ${datos.precio}
+            ${precio}
           </div>
+
+
+        </div>
+
+      `;
+
+
+    }
+
+
+    /* PRODUCTO NO ENCONTRADO */
+
+    else {
+
+
+      resultado.innerHTML = `
+
+        <div class="mensaje">
+          Producto no encontrado.
+        </div>
+
+      `;
+
+    }
+
+
+    /* LIMPIAR CALLBACK */
+
+    delete window[callback];
+
+    script.remove();
+
+  };
+
+
+  /* CREAR PETICIÓN JSONP */
+
+  const script =
+    document.createElement("script");
+
+
+  script.src =
+    API +
+    "?codigo=" +
+    encodeURIComponent(codigo) +
+    "&callback=" +
+    callback;
+
+
+  document.body.appendChild(script);
+
+}
+
+
+/* PERMITIR ENTER PARA BUSCAR */
+
+document
+  .getElementById("codigo")
+  .addEventListener("keydown", function(event) {
+
+    if (event.key === "Enter") {
+
+      buscar();
+
+    }
+
+  });
+
+
+</script>
+
+
+</body>
+
+</html>
