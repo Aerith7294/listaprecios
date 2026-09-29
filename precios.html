@@ -101,10 +101,17 @@
       font-weight: bold;
 
       cursor: pointer;
+
+      transition: 0.15s;
     }
 
     button:active {
       transform: scale(0.98);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
 
     #resultado {
@@ -143,6 +150,8 @@
       color: #111;
 
       margin-bottom: 22px;
+
+      word-wrap: break-word;
     }
 
     .precio {
@@ -173,6 +182,12 @@
       border-radius: 12px;
 
       color: #842029;
+
+      font-size: 16px;
+    }
+
+    .cargando {
+      color: #777;
 
       font-size: 16px;
     }
@@ -220,7 +235,7 @@
       autocomplete="off"
     >
 
-    <button onclick="buscar()">
+    <button id="boton" onclick="buscar()">
       BUSCAR
     </button>
 
@@ -231,167 +246,218 @@
 
 <script>
 
-const API =
-"https://script.google.com/macros/s/AKfycbyUh7fvXzP0EXYxyBQHUN3CA1flwlrI7tLZ6-CVddvtAtho9iMppSRyIbsaTBbww2iM/exec";
+  // ==========================================
+  // GOOGLE APPS SCRIPT
+  // ==========================================
+
+  const API =
+    "https://script.google.com/macros/s/AKfycbznruyRgKJptVPcUcVtpsceQ7XWRsKkoetnn8qyQczn0MpCwzFciyj6JDPXniBDVdoW/exec";
 
 
-function buscar() {
+  // ==========================================
+  // FUNCIÓN PARA BUSCAR
+  // ==========================================
 
-  const codigo =
-    document.getElementById("codigo").value.trim();
+  function buscar() {
 
-  const resultado =
-    document.getElementById("resultado");
+    const codigo =
+      document.getElementById("codigo").value.trim();
+
+    const resultado =
+      document.getElementById("resultado");
+
+    const boton =
+      document.getElementById("boton");
 
 
-  if (codigo === "") {
+    // Si no escribió ningún código
+
+    if (codigo === "") {
+
+      resultado.innerHTML = `
+        <div class="mensaje">
+          Ingresá un código de producto.
+        </div>
+      `;
+
+      return;
+    }
+
+
+    // Mostrar mensaje de búsqueda
 
     resultado.innerHTML = `
-      <div class="mensaje">
-        Ingresá un código de producto.
+      <div class="cargando">
+        Buscando producto...
       </div>
     `;
 
-    return;
-  }
+    boton.disabled = true;
 
 
-  resultado.innerHTML = `
-    <div>
-      Buscando producto...
-    </div>
-  `;
+    // Crear nombre único para el callback
+
+    const callback =
+      "respuesta_" + Date.now();
 
 
-  const callback =
-    "respuesta_" + Date.now();
+    let terminado = false;
 
 
-  let terminado = false;
+    // ==========================================
+    // RESPUESTA DE GOOGLE APPS SCRIPT
+    // ==========================================
+
+    window[callback] = function(datos) {
+
+      terminado = true;
+
+      boton.disabled = false;
 
 
-  window[callback] = function(datos) {
+      // Producto encontrado
 
-    terminado = true;
-
-
-    if (datos.ok) {
-
-      /*
-       * Eliminamos cualquier $ que
-       * venga desde Google Sheets.
-       * Después colocamos solamente uno.
-       */
-
-      const precio =
-        "$" + String(datos.precio).replace(/\$/g, "");
+      if (datos && datos.ok) {
 
 
-      resultado.innerHTML = `
+        // Evita que aparezca $$ si Sheets
+        // ya devuelve el precio con $
 
-        <div class="producto">
+        const precio =
+          "$" +
+          String(datos.precio)
+            .replace(/\$/g, "")
+            .trim();
 
-          <div class="etiqueta">
-            Nombre de producto
+
+        resultado.innerHTML = `
+
+          <div class="producto">
+
+            <div class="etiqueta">
+              Nombre de producto
+            </div>
+
+            <div class="nombre">
+              ${datos.nombre}
+            </div>
+
+            <div class="etiqueta">
+              Precio
+            </div>
+
+            <div class="precio">
+              ${precio}
+            </div>
+
           </div>
 
-          <div class="nombre">
-            ${datos.nombre}
+        `;
+
+
+      }
+
+      // Producto no encontrado
+
+      else {
+
+        resultado.innerHTML = `
+
+          <div class="mensaje">
+            Producto no encontrado.
           </div>
 
-          <div class="etiqueta">
-            Precio
-          </div>
+        `;
 
-          <div class="precio">
-            ${precio}
-          </div>
-
-        </div>
-
-      `;
-
-    } else {
-
-      resultado.innerHTML = `
-
-        <div class="mensaje">
-          Producto no encontrado.
-        </div>
-
-      `;
-
-    }
+      }
 
 
-    delete window[callback];
-
-    if (script) {
-      script.remove();
-    }
-
-  };
-
-
-  const script =
-    document.createElement("script");
-
-
-  script.src =
-    API +
-    "?codigo=" +
-    encodeURIComponent(codigo) +
-    "&callback=" +
-    callback;
-
-
-  /*
-   * Si después de 10 segundos
-   * no llega ninguna respuesta,
-   * mostramos un error.
-   */
-
-  const tiempoEspera = setTimeout(function() {
-
-    if (!terminado) {
-
-      resultado.innerHTML = `
-
-        <div class="error">
-          No se pudo obtener la información.
-          <br><br>
-          Intentá nuevamente.
-        </div>
-
-      `;
+      // Limpiar callback
 
       delete window[callback];
+
 
       if (script) {
         script.remove();
       }
 
-    }
-
-  }, 10000);
+    };
 
 
-  document.body.appendChild(script);
+    // ==========================================
+    // CREAR SOLICITUD JSONP
+    // ==========================================
 
-}
+    const script =
+      document.createElement("script");
 
 
-/* ENTER PARA BUSCAR */
+    script.src =
+      API +
+      "?codigo=" +
+      encodeURIComponent(codigo) +
+      "&callback=" +
+      callback;
 
-document
-  .getElementById("codigo")
-  .addEventListener("keydown", function(event) {
 
-    if (event.key === "Enter") {
-      buscar();
-    }
+    // ==========================================
+    // TIEMPO MÁXIMO DE ESPERA
+    // ==========================================
 
-  });
+    const tiempoEspera =
+      setTimeout(function() {
+
+        if (!terminado) {
+
+          resultado.innerHTML = `
+
+            <div class="error">
+
+              No se pudo obtener la información.
+
+              <br><br>
+
+              Intentá nuevamente.
+
+            </div>
+
+          `;
+
+          boton.disabled = false;
+
+          delete window[callback];
+
+          if (script) {
+            script.remove();
+          }
+
+        }
+
+      }, 10000);
+
+
+    // Enviar solicitud
+
+    document.body.appendChild(script);
+
+  }
+
+
+  // ==========================================
+  // ENTER PARA BUSCAR
+  // ==========================================
+
+  document
+    .getElementById("codigo")
+    .addEventListener("keydown", function(event) {
+
+      if (event.key === "Enter") {
+
+        buscar();
+
+      }
+
+    });
 
 </script>
 
