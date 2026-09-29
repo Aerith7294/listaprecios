@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,214 +7,125 @@
   <title>Consulta de precios</title>
 
   <style>
-
     * {
       box-sizing: border-box;
+      font-family: Arial, sans-serif;
     }
 
     body {
       margin: 0;
       min-height: 100vh;
-      font-family: Arial, Helvetica, sans-serif;
-
-      background: #eeeeee;
-
+      background: #f2f2f2;
       display: flex;
       justify-content: center;
       align-items: center;
-
       padding: 20px;
     }
 
     .contenedor {
       width: 100%;
       max-width: 430px;
-
       background: white;
-
       padding: 30px;
-
       border-radius: 22px;
-
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
-
+      box-shadow: 0 8px 25px rgba(0,0,0,0.12);
       text-align: center;
     }
 
     h1 {
-      margin: 0;
-
-      font-size: 32px;
-
-      font-weight: 700;
-
-      color: #111;
+      margin-top: 0;
+      margin-bottom: 10px;
+      color: #222;
     }
 
     .descripcion {
-      margin-top: 10px;
+      color: #666;
       margin-bottom: 25px;
-
-      font-size: 17px;
-
-      color: #777;
     }
 
     input {
       width: 100%;
-
-      padding: 16px;
-
-      font-size: 21px;
-
-      text-align: center;
-
-      border: 2px solid #dddddd;
-
+      padding: 15px;
+      border: 2px solid #ddd;
       border-radius: 12px;
-
+      font-size: 18px;
+      text-align: center;
       outline: none;
     }
 
     input:focus {
-      border-color: #222;
+      border-color: #333;
     }
 
     button {
       width: 100%;
-
       margin-top: 15px;
-
-      padding: 16px;
-
+      padding: 15px;
       border: none;
-
       border-radius: 12px;
-
       background: #222;
-
       color: white;
-
-      font-size: 18px;
-
+      font-size: 17px;
       font-weight: bold;
-
       cursor: pointer;
-
-      transition: 0.15s;
     }
 
-    button:active {
-      transform: scale(0.98);
+    button:hover {
+      background: #444;
     }
 
     button:disabled {
-      opacity: 0.6;
+      background: #999;
       cursor: not-allowed;
     }
 
     #resultado {
       margin-top: 25px;
+      display: none;
+      padding: 20px;
+      background: #f7f7f7;
+      border-radius: 15px;
+      text-align: left;
     }
 
-    .producto {
-      background: #f6f6f6;
+    .dato {
+      margin-bottom: 15px;
+    }
 
-      border-radius: 16px;
-
-      padding: 22px;
-
-      border: 1px solid #eeeeee;
+    .dato:last-child {
+      margin-bottom: 0;
     }
 
     .etiqueta {
-      font-size: 13px;
-
-      font-weight: bold;
-
-      letter-spacing: 1px;
-
-      color: #888;
-
-      text-transform: uppercase;
-
-      margin-bottom: 7px;
+      display: block;
+      color: #777;
+      font-size: 14px;
+      margin-bottom: 5px;
     }
 
-    .nombre {
-      font-size: 27px;
-
+    .valor {
+      font-size: 20px;
       font-weight: bold;
-
-      color: #111;
-
-      margin-bottom: 22px;
-
-      word-wrap: break-word;
+      color: #222;
     }
 
     .precio {
-      font-size: 36px;
-
-      font-weight: 800;
-
+      font-size: 28px;
       color: #111;
     }
 
-    .mensaje {
-      padding: 15px;
-
-      background: #fff3cd;
-
-      border-radius: 12px;
-
-      color: #664d03;
-
-      font-size: 16px;
-    }
-
     .error {
-      padding: 15px;
-
-      background: #f8d7da;
-
-      border-radius: 12px;
-
-      color: #842029;
-
-      font-size: 16px;
+      color: #c62828;
+      background: #ffebee !important;
+      text-align: center !important;
     }
 
     .cargando {
-      color: #777;
-
-      font-size: 16px;
+      color: #555;
+      text-align: center !important;
     }
-
-    @media (max-width: 480px) {
-
-      .contenedor {
-        padding: 25px;
-      }
-
-      h1 {
-        font-size: 29px;
-      }
-
-      .nombre {
-        font-size: 25px;
-      }
-
-      .precio {
-        font-size: 34px;
-      }
-
-    }
-
   </style>
-
 </head>
-
 
 <body>
 
@@ -223,16 +133,15 @@
 
     <h1>Consulta de precios</h1>
 
-    <div class="descripcion">
+    <p class="descripcion">
       Ingresá el código del producto
-    </div>
+    </p>
 
     <input
+      type="number"
       id="codigo"
-      type="text"
-      inputmode="numeric"
       placeholder="Ejemplo: 1"
-      autocomplete="off"
+      min="1"
     >
 
     <button id="boton" onclick="buscar()">
@@ -244,223 +153,246 @@
   </div>
 
 
-<script>
+  <script>
 
-  // ==========================================
-  // GOOGLE APPS SCRIPT
-  // ==========================================
+    // ==========================================
+    // URL DE TU GOOGLE APPS SCRIPT
+    // ==========================================
 
-  const API =
-    "https://script.google.com/macros/s/AKfycbznruyRgKJptVPcUcVtpsceQ7XWRsKkoetnn8qyQczn0MpCwzFciyj6JDPXniBDVdoW/exec";
-
-
-  // ==========================================
-  // FUNCIÓN PARA BUSCAR
-  // ==========================================
-
-  function buscar() {
-
-    const codigo =
-      document.getElementById("codigo").value.trim();
-
-    const resultado =
-      document.getElementById("resultado");
-
-    const boton =
-      document.getElementById("boton");
-
-
-    // Si no escribió ningún código
-
-    if (codigo === "") {
-
-      resultado.innerHTML = `
-        <div class="mensaje">
-          Ingresá un código de producto.
-        </div>
-      `;
-
-      return;
-    }
-
-
-    // Mostrar mensaje de búsqueda
-
-    resultado.innerHTML = `
-      <div class="cargando">
-        Buscando producto...
-      </div>
-    `;
-
-    boton.disabled = true;
-
-
-    // Crear nombre único para el callback
-
-    const callback =
-      "respuesta_" + Date.now();
-
-
-    let terminado = false;
+    const API =
+      "https://script.google.com/macros/s/AKfycbyETNq5FKaJCITOcX3iRTGE_HYMWrAkUgNlBGhV4ddjsJkMAMjlcigoMT39HfwXad46/exec";
 
 
     // ==========================================
-    // RESPUESTA DE GOOGLE APPS SCRIPT
+    // BUSCAR PRODUCTO
     // ==========================================
 
-    window[callback] = function(datos) {
+    function buscar() {
 
-      terminado = true;
+      const codigo =
+        document.getElementById("codigo").value.trim();
 
-      boton.disabled = false;
+      const resultado =
+        document.getElementById("resultado");
 
-
-      // Producto encontrado
-
-      if (datos && datos.ok) {
-
-
-        // Evita que aparezca $$ si Sheets
-        // ya devuelve el precio con $
-
-        const precio =
-          "$" +
-          String(datos.precio)
-            .replace(/\$/g, "")
-            .trim();
+      const boton =
+        document.getElementById("boton");
 
 
-        resultado.innerHTML = `
+      // Verificar que haya código
 
-          <div class="producto">
+      if (!codigo) {
 
-            <div class="etiqueta">
-              Nombre de producto
-            </div>
+        resultado.style.display = "block";
 
-            <div class="nombre">
-              ${datos.nombre}
-            </div>
+        resultado.className = "error";
 
-            <div class="etiqueta">
-              Precio
-            </div>
+        resultado.innerHTML =
+          "Ingresá un código de producto.";
 
-            <div class="precio">
-              ${precio}
-            </div>
-
-          </div>
-
-        `;
-
-
-      }
-
-      // Producto no encontrado
-
-      else {
-
-        resultado.innerHTML = `
-
-          <div class="mensaje">
-            Producto no encontrado.
-          </div>
-
-        `;
-
+        return;
       }
 
 
-      // Limpiar callback
+      // Mostrar cargando
 
-      delete window[callback];
+      resultado.style.display = "block";
 
+      resultado.className = "cargando";
 
-      if (script) {
-        script.remove();
-      }
+      resultado.innerHTML =
+        "Buscando producto...";
 
-    };
-
-
-    // ==========================================
-    // CREAR SOLICITUD JSONP
-    // ==========================================
-
-    const script =
-      document.createElement("script");
+      boton.disabled = true;
 
 
-    script.src =
-      API +
-      "?codigo=" +
-      encodeURIComponent(codigo) +
-      "&callback=" +
-      callback;
+      // Crear callback único
+
+      const callback =
+        "respuesta_" + Date.now();
 
 
-    // ==========================================
-    // TIEMPO MÁXIMO DE ESPERA
-    // ==========================================
+      // Función que recibirá la respuesta
 
-    const tiempoEspera =
-      setTimeout(function() {
+      window[callback] = function(datos) {
 
-        if (!terminado) {
+        boton.disabled = false;
+
+
+        // Producto encontrado
+
+        if (datos.ok) {
+
+          resultado.className = "";
 
           resultado.innerHTML = `
 
-            <div class="error">
+            <div class="dato">
 
-              No se pudo obtener la información.
+              <span class="etiqueta">
+                Nombre de producto
+              </span>
 
-              <br><br>
+              <span class="valor">
+                ${escapeHTML(datos.nombre)}
+              </span>
 
-              Intentá nuevamente.
+            </div>
+
+
+            <div class="dato">
+
+              <span class="etiqueta">
+                Precio
+              </span>
+
+              <span class="valor precio">
+                ${formatearPrecio(datos.precio)}
+              </span>
 
             </div>
 
           `;
 
+        }
+
+        // Producto no encontrado
+
+        else {
+
+          resultado.className = "error";
+
+          resultado.innerHTML =
+            datos.error || "Producto no encontrado.";
+
+        }
+
+
+        // Eliminar callback
+
+        delete window[callback];
+
+        if (script.parentNode) {
+          script.parentNode.removeChild(script);
+        }
+
+      };
+
+
+      // Crear script JSONP
+
+      const script =
+        document.createElement("script");
+
+
+      script.src =
+        API +
+        "?codigo=" +
+        encodeURIComponent(codigo) +
+        "&callback=" +
+        encodeURIComponent(callback);
+
+
+      script.onerror = function() {
+
+        boton.disabled = false;
+
+        resultado.style.display = "block";
+
+        resultado.className = "error";
+
+        resultado.innerHTML =
+          "No se pudo conectar con el servidor.";
+
+        delete window[callback];
+
+        if (script.parentNode) {
+          script.parentNode.removeChild(script);
+        }
+
+      };
+
+
+      document.body.appendChild(script);
+
+
+      // Tiempo máximo de espera
+
+      setTimeout(function() {
+
+        if (window[callback]) {
+
           boton.disabled = false;
+
+          resultado.className = "error";
+
+          resultado.innerHTML =
+            "La búsqueda tardó demasiado. Intentá nuevamente.";
 
           delete window[callback];
 
-          if (script) {
-            script.remove();
+          if (script.parentNode) {
+            script.parentNode.removeChild(script);
           }
 
         }
 
       }, 10000);
 
-
-    // Enviar solicitud
-
-    document.body.appendChild(script);
-
-  }
+    }
 
 
-  // ==========================================
-  // ENTER PARA BUSCAR
-  // ==========================================
+    // ==========================================
+    // FORMATEAR PRECIO
+    // ==========================================
 
-  document
-    .getElementById("codigo")
-    .addEventListener("keydown", function(event) {
+    function formatearPrecio(precio) {
 
-      if (event.key === "Enter") {
-
-        buscar();
-
+      if (precio === null || precio === undefined) {
+        return "$0";
       }
 
-    });
+      let texto = String(precio).trim();
 
-</script>
+      // Si ya tiene $, no agregar otro
+
+      texto = texto.replace(/\$/g, "").trim();
+
+      return "$" + texto;
+    }
+
+
+    // ==========================================
+    // EVITAR HTML INYECTADO
+    // ==========================================
+
+    function escapeHTML(texto) {
+
+      return String(texto)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+    }
+
+
+    // ==========================================
+    // BUSCAR AL PRESIONAR ENTER
+    // ==========================================
+
+    document
+      .getElementById("codigo")
+      .addEventListener("keydown", function(event) {
+
+        if (event.key === "Enter") {
+          buscar();
+        }
+
+      });
+
+  </script>
 
 </body>
-
 </html>
