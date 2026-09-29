@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Consulta de precios</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .contenedor {
+      width: 100%;
+      max-width: 450px;
+      background: white;
+      padding: 30px 25px;
+      border-radius: 18px;
+      box-shadow: 0 5px 25px rgba(0, 0, 0, 0.12);
+      text-align: center;
+    }
+
+    h1 {
+      margin-top: 0;
+    }
+
+    .descripcion {
+      color: #666;
+      margin-bottom: 25px;
+    }
+
+    input {
+      width: 100%;
+      padding: 15px;
+      font-size: 18px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 15px;
+      padding: 15px;
+      font-size: 18px;
+      font-weight: bold;
+      border: none;
+      border-radius: 10px;
+      background: #222;
+      color: white;
+      cursor: pointer;
+    }
+
+    #resultado {
+      margin-top: 25px;
+    }
+
+    .producto {
+      background: #f5f5f5;
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .nombre {
+      font-size: 22px;
+      font-weight: bold;
+      margin-bottom: 12px;
+    }
+
+    .precio {
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    .mensaje {
+      padding: 15px;
+      border-radius: 10px;
+      background: #fff3cd;
+      color: #664d03;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="contenedor">
+
+    <h1>Consulta de precios</h1>
+
+    <div class="descripcion">
+      Ingresá el código del producto
+    </div>
+
+    <input
+      type="text"
+      id="codigo"
+      placeholder="Ejemplo: 00125"
+      autocomplete="off"
+    >
+
+    <button onclick="buscarProducto()">
+      BUSCAR
+    </button>
+
+    <div id="resultado"></div>
+
+  </div>
+
+
+  <script>
+
+    const API_URL =
+      "https://script.google.com/macros/s/AKfycbyUh7fvXzP0EXYxyBQHUN3CA1flwlrI7tLZ6-CVddvtAtho9iMppSRyIbsaTBbww2iM/exec";
+
+
+    function buscarProducto() {
+
+      const codigo =
+        document.getElementById("codigo").value.trim();
+
+      const resultado =
+        document.getElementById("resultado");
+
+
+      if (!codigo) {
+
+        resultado.innerHTML =
+          '<div class="mensaje">Ingresá un código.</div>';
+
+        return;
+      }
+
+
+      resultado.innerHTML =
+        '<div>Buscando producto...</div>';
+
+
+      const callback =
+        "respuesta_" + Date.now();
+
+
+      window[callback] = function(datos) {
+
+        if (datos.ok) {
+
+          resultado.innerHTML = `
+            <div class="producto">
+
+              <div class="nombre">
+                ${datos.nombre}
+              </div>
+
+              <div class="precio">
+                $${datos.precio}
+              </div>
+
+            </div>
+          `;
+
+        } else {
+
+          resultado.innerHTML =
+            '<div class="mensaje">Producto no encontrado.</div>';
+
+        }
+
+
+        delete window[callback];
+
+        const script =
+          document.getElementById(callback);
+
+        if (script) {
+          script.remove();
+        }
+
+      };
+
+
+      const script =
+        document.createElement("script");
+
+      script.id = callback;
+
+      script.src =
+        API_URL +
+        "?codigo=" +
+        encodeURIComponent(codigo) +
+        "&callback=" +
+        callback;
+
+
+      script.onerror = function() {
+
+        resultado.innerHTML =
+          '<div class="mensaje">No se pudo conectar con el servidor.</div>';
+
+        delete window[callback];
+
+       
