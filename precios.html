@@ -1,141 +1,259 @@
 <!DOCTYPE html>
+
 <html lang="es">
+
 <head>
+
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
 
   <title>Consulta de precios</title>
 
+
   <style>
+
     * {
       box-sizing: border-box;
       font-family: Arial, sans-serif;
     }
 
+
     body {
+
       margin: 0;
+
       min-height: 100vh;
+
       background: #f2f2f2;
+
       display: flex;
+
       justify-content: center;
+
       align-items: center;
+
       padding: 20px;
+
     }
+
 
     .contenedor {
+
       width: 100%;
+
       max-width: 430px;
+
       background: white;
+
       padding: 30px;
+
       border-radius: 22px;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+
+      box-shadow:
+        0 8px 25px rgba(0,0,0,0.12);
+
       text-align: center;
+
     }
+
 
     h1 {
+
       margin-top: 0;
+
       margin-bottom: 10px;
+
       color: #222;
+
     }
+
 
     .descripcion {
+
       color: #666;
+
       margin-bottom: 25px;
+
     }
+
 
     input {
+
       width: 100%;
+
       padding: 15px;
+
       border: 2px solid #ddd;
+
       border-radius: 12px;
+
       font-size: 18px;
+
       text-align: center;
+
       outline: none;
+
     }
+
 
     input:focus {
+
       border-color: #333;
+
     }
+
 
     button {
+
       width: 100%;
+
       margin-top: 15px;
+
       padding: 15px;
+
       border: none;
+
       border-radius: 12px;
+
       background: #222;
+
       color: white;
+
       font-size: 17px;
+
       font-weight: bold;
+
       cursor: pointer;
+
     }
+
 
     button:hover {
+
       background: #444;
+
     }
+
 
     button:disabled {
+
       background: #999;
+
       cursor: not-allowed;
+
     }
+
+
+    #estado {
+
+      margin-top: 12px;
+
+      font-size: 13px;
+
+      color: #777;
+
+    }
+
 
     #resultado {
+
       margin-top: 25px;
+
       display: none;
+
       padding: 20px;
+
       background: #f7f7f7;
+
       border-radius: 15px;
+
       text-align: left;
+
     }
+
 
     .dato {
+
       margin-bottom: 15px;
+
     }
+
 
     .dato:last-child {
+
       margin-bottom: 0;
+
     }
+
 
     .etiqueta {
+
       display: block;
+
       color: #777;
+
       font-size: 14px;
+
       margin-bottom: 5px;
+
     }
+
 
     .valor {
+
       font-size: 20px;
+
       font-weight: bold;
+
       color: #222;
+
     }
+
 
     .precio {
+
       font-size: 28px;
-      color: #111;
+
     }
+
 
     .error {
-      color: #c62828;
-      background: #ffebee !important;
-      text-align: center !important;
+
+      color: #c62828 !important;
+
     }
 
-    .cargando {
-      color: #555;
-      text-align: center !important;
+
+    .exito {
+
+      color: #2e7d32 !important;
+
     }
+
   </style>
+
 </head>
+
 
 <body>
 
+
   <div class="contenedor">
 
-    <h1>Consulta de precios</h1>
+
+    <h1>
+      Consulta de precios
+    </h1>
+
 
     <p class="descripcion">
       Ingresá el código del producto
     </p>
+
 
     <input
       type="number"
@@ -144,255 +262,523 @@
       min="1"
     >
 
-    <button id="boton" onclick="buscar()">
+
+    <button
+      id="boton"
+      onclick="buscar()"
+    >
       BUSCAR
     </button>
 
+
+    <div id="estado">
+      Cargando productos...
+    </div>
+
+
     <div id="resultado"></div>
+
 
   </div>
 
 
   <script>
 
-    // ==========================================
-    // URL DE TU GOOGLE APPS SCRIPT
-    // ==========================================
+
+    // ==================================================
+    // URL DE GOOGLE APPS SCRIPT
+    // ==================================================
 
     const API =
       "https://script.google.com/macros/s/AKfycbyETNq5FKaJCITOcX3iRTGE_HYMWrAkUgNlBGhV4ddjsJkMAMjlcigoMT39HfwXad46/exec";
 
 
-    // ==========================================
-    // BUSCAR PRODUCTO
-    // ==========================================
+    // ==================================================
+    // PRODUCTOS EN MEMORIA
+    // ==================================================
 
-    function buscar() {
+    let productos = {};
 
-      const codigo =
-        document.getElementById("codigo").value.trim();
+    let productosCargados = false;
 
-      const resultado =
-        document.getElementById("resultado");
-
-      const boton =
-        document.getElementById("boton");
+    let cargando = false;
 
 
-      // Verificar que haya código
+    // ==================================================
+    // CARGAR TODOS LOS PRODUCTOS
+    // ==================================================
 
-      if (!codigo) {
+    function cargarProductos() {
 
-        resultado.style.display = "block";
 
-        resultado.className = "error";
-
-        resultado.innerHTML =
-          "Ingresá un código de producto.";
+      if (cargando || productosCargados) {
 
         return;
+
       }
 
 
-      // Mostrar cargando
+      cargando = true;
 
-      resultado.style.display = "block";
-
-      resultado.className = "cargando";
-
-      resultado.innerHTML =
-        "Buscando producto...";
-
-      boton.disabled = true;
-
-
-      // Crear callback único
 
       const callback =
-        "respuesta_" + Date.now();
+        "productos_" + Date.now();
 
 
-      // Función que recibirá la respuesta
-
-      window[callback] = function(datos) {
-
-        boton.disabled = false;
+      window[callback] =
+        function(datos) {
 
 
-        // Producto encontrado
-
-        if (datos.ok) {
-
-          resultado.className = "";
-
-          resultado.innerHTML = `
-
-            <div class="dato">
-
-              <span class="etiqueta">
-                Nombre de producto
-              </span>
-
-              <span class="valor">
-                ${escapeHTML(datos.nombre)}
-              </span>
-
-            </div>
+          cargando = false;
 
 
-            <div class="dato">
+          // ------------------------------------------
+          // ERROR
+          // ------------------------------------------
 
-              <span class="etiqueta">
-                Precio
-              </span>
+          if (!datos.ok) {
 
-              <span class="valor precio">
-                ${formatearPrecio(datos.precio)}
-              </span>
+            mostrarEstado(
+              datos.error ||
+              "No se pudieron cargar los productos.",
+              true
+            );
 
-            </div>
+            eliminarScript();
 
-          `;
+            delete window[callback];
 
-        }
+            return;
 
-        // Producto no encontrado
-
-        else {
-
-          resultado.className = "error";
-
-          resultado.innerHTML =
-            datos.error || "Producto no encontrado.";
-
-        }
+          }
 
 
-        // Eliminar callback
+          // ------------------------------------------
+          // GUARDAR PRODUCTOS
+          // ------------------------------------------
 
-        delete window[callback];
-
-        if (script.parentNode) {
-          script.parentNode.removeChild(script);
-        }
-
-      };
+          if (
+            Array.isArray(datos.productos)
+          ) {
 
 
-      // Crear script JSONP
+            datos.productos.forEach(
+              function(producto) {
+
+
+                const codigo =
+                  String(
+                    producto.codigo
+                  ).trim();
+
+
+                productos[codigo] = {
+
+                  nombre:
+                    producto.nombre,
+
+                  precio:
+                    producto.precio
+
+                };
+
+
+              }
+            );
+
+          }
+
+
+          productosCargados = true;
+
+
+          mostrarEstado(
+            "✓ Productos cargados",
+            false
+          );
+
+
+          eliminarScript();
+
+          delete window[callback];
+
+
+        };
+
 
       const script =
         document.createElement("script");
 
 
+      script.id =
+        "scriptProductos";
+
+
       script.src =
         API +
-        "?codigo=" +
-        encodeURIComponent(codigo) +
+        "?todos=1" +
         "&callback=" +
         encodeURIComponent(callback);
 
 
-      script.onerror = function() {
+      script.onerror =
+        function() {
 
-        boton.disabled = false;
 
-        resultado.style.display = "block";
+          cargando = false;
 
-        resultado.className = "error";
 
-        resultado.innerHTML =
-          "No se pudo conectar con el servidor.";
+          mostrarEstado(
+            "No se pudo conectar con Google.",
+            true
+          );
 
-        delete window[callback];
 
-        if (script.parentNode) {
-          script.parentNode.removeChild(script);
-        }
+          eliminarScript();
 
-      };
+          delete window[callback];
+
+
+        };
 
 
       document.body.appendChild(script);
 
 
-      // Tiempo máximo de espera
+      // ------------------------------------------
+      // TIEMPO MÁXIMO
+      // ------------------------------------------
 
-      setTimeout(function() {
+      setTimeout(
+        function() {
 
-        if (window[callback]) {
 
-          boton.disabled = false;
+          if (window[callback]) {
 
-          resultado.className = "error";
 
-          resultado.innerHTML =
-            "La búsqueda tardó demasiado. Intentá nuevamente.";
+            cargando = false;
 
-          delete window[callback];
 
-          if (script.parentNode) {
-            script.parentNode.removeChild(script);
+            mostrarEstado(
+              "Google está tardando demasiado.",
+              true
+            );
+
+
+            eliminarScript();
+
+            delete window[callback];
+
+
           }
 
-        }
 
-      }, 10000);
+        },
+        15000
+      );
+
 
     }
 
 
-    // ==========================================
+    // ==================================================
+    // BUSCAR PRODUCTO
+    // ==================================================
+
+    function buscar() {
+
+
+      const codigo =
+        document
+          .getElementById("codigo")
+          .value
+          .trim();
+
+
+      const resultado =
+        document
+          .getElementById("resultado");
+
+
+      // ------------------------------------------
+      // CÓDIGO VACÍO
+      // ------------------------------------------
+
+      if (!codigo) {
+
+
+        resultado.style.display =
+          "block";
+
+
+        resultado.className =
+          "error";
+
+
+        resultado.innerHTML =
+          "Ingresá un código de producto.";
+
+
+        return;
+
+      }
+
+
+      // ------------------------------------------
+      // TODAVÍA CARGANDO
+      // ------------------------------------------
+
+      if (!productosCargados) {
+
+
+        resultado.style.display =
+          "block";
+
+
+        resultado.className =
+          "error";
+
+
+        resultado.innerHTML =
+          "Esperá a que se carguen los productos.";
+
+
+        return;
+
+      }
+
+
+      // ------------------------------------------
+      // BUSCAR EN MEMORIA
+      // ------------------------------------------
+
+      const producto =
+        productos[codigo];
+
+
+      // ------------------------------------------
+      // NO ENCONTRADO
+      // ------------------------------------------
+
+      if (!producto) {
+
+
+        resultado.style.display =
+          "block";
+
+
+        resultado.className =
+          "error";
+
+
+        resultado.innerHTML =
+          "Producto no encontrado.";
+
+
+        return;
+
+      }
+
+
+      // ------------------------------------------
+      // MOSTRAR RESULTADO
+      // ------------------------------------------
+
+      resultado.style.display =
+        "block";
+
+
+      resultado.className = "";
+
+
+      resultado.innerHTML = `
+
+        <div class="dato">
+
+          <span class="etiqueta">
+            Nombre de producto
+          </span>
+
+          <span class="valor">
+            ${escapeHTML(producto.nombre)}
+          </span>
+
+        </div>
+
+
+        <div class="dato">
+
+          <span class="etiqueta">
+            Precio
+          </span>
+
+          <span class="valor precio">
+            ${formatearPrecio(producto.precio)}
+          </span>
+
+        </div>
+
+      `;
+
+
+    }
+
+
+    // ==================================================
     // FORMATEAR PRECIO
-    // ==========================================
+    // ==================================================
 
     function formatearPrecio(precio) {
 
-      if (precio === null || precio === undefined) {
+
+      if (
+        precio === null ||
+        precio === undefined
+      ) {
+
         return "$0";
+
       }
 
-      let texto = String(precio).trim();
 
-      // Si ya tiene $, no agregar otro
+      let texto =
+        String(precio).trim();
 
-      texto = texto.replace(/\$/g, "").trim();
+
+      texto =
+        texto.replace(
+          /\$/g,
+          ""
+        ).trim();
+
 
       return "$" + texto;
+
+
     }
 
 
-    // ==========================================
-    // EVITAR HTML INYECTADO
-    // ==========================================
+    // ==================================================
+    // MOSTRAR ESTADO
+    // ==================================================
+
+    function mostrarEstado(
+      texto,
+      error
+    ) {
+
+
+      const estado =
+        document
+          .getElementById("estado");
+
+
+      estado.textContent =
+        texto;
+
+
+      estado.className =
+        error
+          ? "error"
+          : "exito";
+
+
+    }
+
+
+    // ==================================================
+    // ELIMINAR SCRIPT
+    // ==================================================
+
+    function eliminarScript() {
+
+
+      const script =
+        document.getElementById(
+          "scriptProductos"
+        );
+
+
+      if (script) {
+
+        script.remove();
+
+      }
+
+    }
+
+
+    // ==================================================
+    // SEGURIDAD
+    // ==================================================
 
     function escapeHTML(texto) {
 
+
       return String(texto)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+
+        .replace(
+          /&/g,
+          "&amp;"
+        )
+
+        .replace(
+          /</g,
+          "&lt;"
+        )
+
+        .replace(
+          />/g,
+          "&gt;"
+        )
+
+        .replace(
+          /"/g,
+          "&quot;"
+        )
+
+        .replace(
+          /'/g,
+          "&#039;"
+        );
 
     }
 
 
-    // ==========================================
-    // BUSCAR AL PRESIONAR ENTER
-    // ==========================================
+    // ==================================================
+    // ENTER PARA BUSCAR
+    // ==================================================
 
     document
       .getElementById("codigo")
-      .addEventListener("keydown", function(event) {
+      .addEventListener(
+        "keydown",
+        function(event) {
 
-        if (event.key === "Enter") {
-          buscar();
+
+          if (
+            event.key === "Enter"
+          ) {
+
+            buscar();
+
+          }
+
+
         }
+      );
 
-      });
+
+    // ==================================================
+    // CARGAR AL ABRIR LA PÁGINA
+    // ==================================================
+
+    cargarProductos();
+
 
   </script>
 
+
 </body>
+
 </html>
